@@ -56,7 +56,7 @@ public class Puzzle : MonoBehaviour
 
     public float RayCastDistance = 50f;
 
-    //Cell cuve prefab
+    //Cell cube prefab
     public GameObject CellCube;
 
     //Highlighted cell cube GO which is under the mouse cursor right now
