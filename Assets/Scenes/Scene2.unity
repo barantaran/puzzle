@@ -271,6 +271,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 10
+  RayCastDistance: 50
   CellCube: {fileID: 782465662290311453, guid: 0f1e798b2333fc24ab994a1c72de2e83, type: 3}
 --- !u!4 &775950964
 Transform:
@@ -438,7 +439,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   focus: {fileID: 775950964}
-  distance: 20
+  distance: 50
   focusRadius: 5
   focusCentering: 0.5
   rotationSpeed: 360
