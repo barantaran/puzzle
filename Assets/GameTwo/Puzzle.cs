@@ -17,12 +17,6 @@ public class Puzzle : MonoBehaviour
         Y,
         Z
     }
-    public enum DebugGizmo
-    {
-        Sphere,
-        Cube
-    }
-
     public class MatrixCell
     {
         public int X;
@@ -36,6 +30,19 @@ public class Puzzle : MonoBehaviour
             Z = z;
         }
     }
+
+    //Three-dimansional integer array to store the puzzle
+    public int[,,] PuzzleMatrix;
+
+    public MatrixCell[] Figure;
+
+    //Puzzle size
+    public int Size;
+    public enum DebugGizmo
+    {
+        Sphere,
+        Cube
+    }
     public class DebugMark
     {
         public DebugGizmo Gizmo;
@@ -46,12 +53,6 @@ public class Puzzle : MonoBehaviour
     }
 
     public List<DebugMark> DebugMarks = new List<DebugMark>();
-
-    //Three-dimansional integer array to store the puzzle
-    public int[,,] PuzzleMatrix;
-
-    //Puzzle size
-    public int Size;
 
     public float RayCastDistance = 50f;
 
