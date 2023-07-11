@@ -23,13 +23,13 @@ public class Puzzle : MonoBehaviour
         Cube
     }
 
-    public class PuzzleCell
+    public class MatrixCell
     {
         public int X;
         public int Y;
         public int Z;
 
-        public PuzzleCell(int x, int y, int z)
+        public MatrixCell(int x, int y, int z)
         {
             X = x;
             Y = y;
@@ -58,10 +58,10 @@ public class Puzzle : MonoBehaviour
     //Cell cuve prefab
     public GameObject CellCube;
 
-    //Highlighted cell cube GO
+    //Highlighted cell cube GO which is under the mouse cursor right now
     GameObject HighlightedCellCube;
 
-    //Highlighted cell original color
+    //Highlighted cell original color which should be restored when the mouse cursor leaves the cell
     Color HighlightedCellOriginalColor;
 
     // Start is called before the first frame update
@@ -97,14 +97,19 @@ public class Puzzle : MonoBehaviour
         if (Input.anyKeyDown)
         {
             //Gets closest empty cell to the center of the puzzle
-            PuzzleCell closestCell = FindClosestZeroCell(PuzzleMatrix);
+            MatrixCell closestCell = FindClosestZeroCell(PuzzleMatrix);
+            
+            //Fill the cell with 1
+            PuzzleMatrix[closestCell.X, closestCell.Y, closestCell.Z] = 1;
 
-            PuzzleCell[] lookupCells = GetCellsAlongDimension(closestCell, GetRandomDimension());
+            //Get randomly -1 or 1
+            int randomDirection = UnityEngine.Random.Range(0, 2) * 2 - 1;
 
+            MatrixCell[] lookupCells = GetCellsAlongDimension(closestCell, GetRandomDimension(), randomDirection);
             //Add debug marks to debug look up cells excluding the first cell
             for (int i = 1; i < lookupCells.Length; i++)
             {
-                PuzzleCell cell = lookupCells[i];
+                MatrixCell cell = lookupCells[i];
                 DebugMark debugMark = new DebugMark();
                 debugMark.Gizmo = DebugGizmo.Cube;
                 debugMark.Position = new Vector3(cell.X, cell.Y, cell.Z);
@@ -113,16 +118,6 @@ public class Puzzle : MonoBehaviour
                 debugMark.Duration = 250;
                 DebugMarks.Add(debugMark);
             }
-
-            //Fill the cell with 1
-            PuzzleMatrix[closestCell.X, closestCell.Y, closestCell.Z] = 1;
-
-           //puzzle[closestCell[0], closestCell[1], closestCell[2]] = 1;
-
-            //Get randomly -1 or 1
-            int randomDirection = UnityEngine.Random.Range(0, 2) * 2 - 1;
-
-            //Debug.DrawRay(new Vector3(closestCell[0], closestCell[1], closestCell[2]), GetRandomAxis() * randomDirection * Size, Color.red, 1);
 
             //Destroy all the cubes in Scene by tag PuzzleCube
             GameObject[] cubes = GameObject.FindGameObjectsWithTag(Tags.PuzzleCube.ToString());
@@ -134,14 +129,6 @@ public class Puzzle : MonoBehaviour
             //Display the puzzle
             DisplayPuzzle();
         }
-
-
-        //string cellNameUnderMouse = GetCellNameUnderMouse();
-
-        //if(cellNameUnderMouse != null)
-        //{
-        //    Debug.Log(cellNameUnderMouse);
-        //}
 
         HighlightUnderMouse();
     }
@@ -179,7 +166,7 @@ public class Puzzle : MonoBehaviour
                     //cube.transform.parent = transform;
 
                     //define the cell
-                    PuzzleCell cell = new PuzzleCell(i, j, k);
+                    MatrixCell cell = new MatrixCell(i, j, k);
 
                     //Set the cube's name to its position in the puzzle
                     cube.name = GenerateCellName(cell);
@@ -188,7 +175,7 @@ public class Puzzle : MonoBehaviour
         }
     }
 
-    private static string GenerateCellName(PuzzleCell cell)
+    private static string GenerateCellName(MatrixCell cell)
     {
         return cell.X + "," + cell.Y + "," + cell.Z;
     }
@@ -242,14 +229,14 @@ public class Puzzle : MonoBehaviour
     /// <summary>
     /// Return empty cell in puzzle as close to the center as possible
     ///</summary>
-    public PuzzleCell FindClosestZeroCell(int[,,] matrix)
+    public MatrixCell FindClosestZeroCell(int[,,] matrix)
     {
         int centerX = matrix.GetLength(0) / 2;
         int centerY = matrix.GetLength(1) / 2;
         int centerZ = matrix.GetLength(2) / 2;
 
         int minDistance = int.MaxValue;
-        PuzzleCell closestCell = null;
+        MatrixCell closestCell = null;
 
         for (int x = 0; x < matrix.GetLength(0); x++)
         {
@@ -265,7 +252,7 @@ public class Puzzle : MonoBehaviour
                             minDistance = distance;
 
                             //Store the closest cell
-                            closestCell = new PuzzleCell(x, y, z);
+                            closestCell = new MatrixCell(x, y, z);
                         }
                     }
                 }
@@ -312,7 +299,7 @@ public class Puzzle : MonoBehaviour
     //<summary>
     ///Get cell position from indices
     ///
-    public Vector3 GetCellPositionFromIndex(PuzzleCell cell)
+    public Vector3 GetCellPositionFromIndex(MatrixCell cell)
     {
         //Returns cell position converting indices to floats
         return new Vector3(cell.X, cell.Y, cell.Z);
@@ -321,14 +308,14 @@ public class Puzzle : MonoBehaviour
     /// <summary>
     /// Return the cell indices from Vector3 position
     /// </summary>
-    public PuzzleCell GetCellFromPosition(Vector3 position)
+    public MatrixCell GetCellFromPosition(Vector3 position)
     {
         int x = Mathf.RoundToInt(position.x);
         int y = Mathf.RoundToInt(position.y);
         int z = Mathf.RoundToInt(position.z);
 
         //Returns cell
-        return new PuzzleCell(x, y, z);
+        return new MatrixCell(x, y, z);
 
 
     }
@@ -338,13 +325,13 @@ public class Puzzle : MonoBehaviour
     /// </summary>
     /// <param name="lookUpPoints"></param>
     /// <returns></returns>
-    public PuzzleCell GetNonEmptyCellFromPoints(Vector3[] lookUpPoints)
+    public MatrixCell GetNonEmptyCellFromPoints(Vector3[] lookUpPoints)
     {
        //Iterate through all the look up points
        foreach (Vector3 point in lookUpPoints)
         {
             //Get the cell from the point
-            PuzzleCell cell = GetCellFromPosition(point);
+            MatrixCell cell = GetCellFromPosition(point);
             if(!InBounds(cell))
             {
                 continue;
@@ -396,7 +383,7 @@ public class Puzzle : MonoBehaviour
         Ray lookupRay = Camera.main.ScreenPointToRay(Input.mousePosition);
 
         Vector3[] lookUpPoints = GetPointsAlongRay(lookupRay, 0.5f, RayCastDistance + Size);
-        PuzzleCell cell = GetNonEmptyCellFromPoints(lookUpPoints);
+        MatrixCell cell = GetNonEmptyCellFromPoints(lookUpPoints);
 
         if (cell == null)
         {
@@ -410,7 +397,7 @@ public class Puzzle : MonoBehaviour
     /// <summary>
     /// Checks if indicies are within the bounds of the puzzle
     /// 
-    public bool InBounds(PuzzleCell cell)
+    public bool InBounds(MatrixCell cell)
     {
         return cell.X >= 0 && cell.X < Size && cell.Y >= 0 && cell.Y < Size && cell.Z >= 0 && cell.Z < Size;
 
@@ -479,43 +466,43 @@ public class Puzzle : MonoBehaviour
         return indicesAlongAxis.ToArray();
     }
 
-    public PuzzleCell[] GetCellsAlongDimension(PuzzleCell cell, Dimension dimension)
+    public MatrixCell[] GetCellsAlongDimension(MatrixCell cell, Dimension dimension, int direction)
     {
         int xSize = PuzzleMatrix.GetLength(0);
         int ySize = PuzzleMatrix.GetLength(1);
         int zSize = PuzzleMatrix.GetLength(2);
 
-        // Calculate max range along the specified dimension
+        // Calculate max range along the specified dimension taking into account the direction
         int maxRange = 0;
         switch (dimension)
         {
             case Dimension.X:
-                maxRange = xSize - cell.X;
+                maxRange = direction > 0 ? xSize - cell.X : cell.X + 1;
                 break;
             case Dimension.Y:
-                maxRange = ySize - cell.Y;
+                maxRange = direction > 0 ? ySize - cell.Y : cell.Y + 1;
                 break;
             case Dimension.Z:
-                maxRange = zSize - cell.Z;
+                maxRange = direction > 0 ? zSize - cell.Z : cell.Z + 1;
                 break;
         }
 
         // Initialize the 3D array of indices
-        PuzzleCell[] cells = new PuzzleCell[maxRange];
+        MatrixCell[] cells = new MatrixCell[maxRange];
 
-        // Add indices to the 3D array
+        // Add indices to the 3D array in direction specified
         for (int i = 0; i < maxRange; i++)
         {
             switch (dimension)
             {
                 case Dimension.X:
-                    cells[i] = new PuzzleCell(cell.X + i, cell.Y, cell.Z);
+                    cells[i] = new MatrixCell(cell.X + i * direction, cell.Y, cell.Z);
                     break;
                 case Dimension.Y:
-                    cells[i] = new PuzzleCell(cell.X, cell.Y + i, cell.Z);
+                    cells[i] = new MatrixCell(cell.X, cell.Y + i * direction, cell.Z);
                     break;
                 case Dimension.Z:
-                    cells[i] = new PuzzleCell(cell.X, cell.Y, cell.Z + i);
+                    cells[i] = new MatrixCell(cell.X, cell.Y, cell.Z + i * direction);
                     break;
             }
         }
